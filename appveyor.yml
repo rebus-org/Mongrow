@@ -1,0 +1,17 @@
+image: Visual Studio 2017
+
+services:
+  - mongodb
+
+shallow_clone: true
+
+cache:
+  - packages -> **\packages.config
+  - '%LocalAppData%\NuGet\Cache'
+
+before_build:
+  - appveyor-retry dotnet restore -v Minimal
+
+build_script:
+  - dotnet build Mongrow -c Release 
+  - dotnet build Mongrow.Tests -c Release 
