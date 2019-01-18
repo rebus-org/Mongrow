@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using MongoDB.Driver;
 
 namespace Mongrow.Internals
 {
@@ -14,6 +15,19 @@ namespace Mongrow.Internals
 
             return string.Join(Environment.NewLine,
                 items.Select(item => string.Concat(indentation, $"- {getValue(item)}")));
+        }
+
+        public static IMongoDatabase GetMongoDatabase(this string connectionString)
+        {
+            var mongoUrl = new MongoUrl(connectionString);
+            var databaseName = mongoUrl.DatabaseName;
+
+            if (string.IsNullOrEmpty(databaseName))
+            {
+                throw new ArgumentException($"The connection string '{connectionString}' does not specify a database name!");
+            }
+
+            return new MongoClient(mongoUrl).GetDatabase(databaseName);
         }
     }
 }

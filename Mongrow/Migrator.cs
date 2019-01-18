@@ -19,6 +19,10 @@ namespace Mongrow
         readonly List<IStep> _steps;
         readonly MongoDbDistributedLock _lock;
 
+        public Migrator(string connectionString, IEnumerable<IStep> steps, Options options = null) : this(connectionString.GetMongoDatabase(), steps, options)
+        {
+        }
+
         public Migrator(IMongoDatabase mongoDatabase, IEnumerable<IStep> steps, Options options = null)
         {
             _mongoDatabase = mongoDatabase;
