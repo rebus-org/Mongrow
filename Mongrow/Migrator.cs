@@ -27,6 +27,7 @@ namespace Mongrow
             InitialScreening();
 
             Log($"Mongrow initialized with {_steps.Count} migration steps", verbose: false);
+            Log(_steps.ListedAs(step => $"{step.GetId()}: {step.GetType().FullName}"));
         }
 
         public void Execute() => AsyncHelpers.RunSync(ExecuteAsync);
@@ -35,7 +36,6 @@ namespace Mongrow
         {
             while (true)
             {
-                Log("Getting IDs of steps executed");
                 var idsOfStepsAlreadyExecuted = await GetIdsOfStepsAlreadyExecuted();
                 var stepToExecute = GetNextStepToExecute(idsOfStepsAlreadyExecuted);
 
@@ -47,12 +47,20 @@ namespace Mongrow
 
         async Task ExecuteStep(IStep step)
         {
+            Log($"Executing migration step {step.GetId()}: {step.GetType().FullName}");
+
             var stopwatch = Stopwatch.StartNew();
             try
             {
                 await step.Execute(_mongoDatabase);
 
-                await RecordExecution(step, stopwatch.Elapsed);
+                Log($"Recording execution of step {step.GetId()}");
+
+                var elapsed = stopwatch.Elapsed;
+
+                await RecordExecution(step, elapsed);
+
+                Log($"Successfully executed migration step {step.GetId()}: {step.GetType().FullName} in {elapsed.TotalSeconds:0.0} s", verbose: false);
             }
             catch (Exception exception)
             {
