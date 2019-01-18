@@ -25,6 +25,8 @@ namespace Mongrow
             _steps = steps.ToList();
 
             InitialScreening();
+
+            Log($"Mongrow initialized with {_steps.Count} migration steps", verbose: false);
         }
 
         public void Execute() => AsyncHelpers.RunSync(ExecuteAsync);
@@ -33,6 +35,7 @@ namespace Mongrow
         {
             while (true)
             {
+                Log("Getting IDs of steps executed");
                 var idsOfStepsAlreadyExecuted = await GetIdsOfStepsAlreadyExecuted();
                 var stepToExecute = GetNextStepToExecute(idsOfStepsAlreadyExecuted);
 
@@ -108,11 +111,12 @@ into {_options.CollectionName}", exception);
 
                 return new HashSet<StepId>(stepIds);
             }
-
         }
 
         void InitialScreening()
         {
+            Log("Checking migration steps for consistency");
+
             var steps = _steps
                 .Select(step => new
                 {
@@ -143,6 +147,18 @@ Please remember to decorate each step class with [Step(...)]");
 {a.ListedAs(g => g.Step.GetType(), level: 2)}")}
 
 Please ensure that each step is provided with a unique ID. Remember that IDs can be further qualified, by adding a branch specification like this:  [Step(3, ""something"")]");
+            }
+        }
+
+        void Log(string message, bool verbose = true)
+        {
+            if (verbose)
+            {
+                _options.VerboseLogAction(message);
+            }
+            else
+            {
+                _options.LogAction(message);
             }
         }
     }

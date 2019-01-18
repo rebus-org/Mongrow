@@ -13,11 +13,13 @@ namespace Mongrow.Tests.Trivial
     [TestFixture]
     public class CanDoIt : FixtureBase
     {
+        static readonly Options DefaultOptions = new Options(logAction: Console.WriteLine, verboseLogAction: Console.WriteLine);
+
         [Test]
         public void CanRunSingleMigration()
         {
             var database = MongoTest.GetCleanTestDatabase();
-            var migrator = new Migrator(database, new[] { new InsertSingleDocument() });
+            var migrator = new Migrator(database, new[] { new InsertSingleDocument() }, DefaultOptions);
 
             migrator.Execute();
 
@@ -30,7 +32,7 @@ namespace Mongrow.Tests.Trivial
         public void RunningSameMigrationTwiceDoesNotFail()
         {
             var database = MongoTest.GetCleanTestDatabase();
-            var migrator = new Migrator(database, new[] { new InsertSingleDocument() });
+            var migrator = new Migrator(database, new[] { new InsertSingleDocument() }, DefaultOptions);
             migrator.Execute();
 
             migrator.Execute();
@@ -50,7 +52,7 @@ namespace Mongrow.Tests.Trivial
                 new DoesNotHaveTheAttribute()
             };
 
-            var exception = Assert.Throws<ArgumentException>(() => new Migrator(database, steps));
+            var exception = Assert.Throws<ArgumentException>(() => new Migrator(database, steps, DefaultOptions));
 
             Console.WriteLine(exception);
         }
@@ -65,7 +67,7 @@ namespace Mongrow.Tests.Trivial
                 new HasSameIdAsTheOtherOne()
             };
 
-            var exception = Assert.Throws<ArgumentException>(() => new Migrator(database, steps));
+            var exception = Assert.Throws<ArgumentException>(() => new Migrator(database, steps, DefaultOptions));
 
             Console.WriteLine(exception);
         }
