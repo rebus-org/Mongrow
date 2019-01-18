@@ -109,12 +109,13 @@ namespace Mongrow
             {
                 {"_id", step.GetId().ToString()},
                 {"time_utc", DateTime.UtcNow},
-                {"time_local", DateTime.Now.ToString(CultureInfo.CurrentCulture)},
+                {"time_local", DateTimeOffset.Now.ToString("o")},
                 {"elapsed_s", elapsed.TotalSeconds},
                 {"type", step.GetType().FullName},
                 {"user", Environment.UserName},
                 {"domain", Environment.UserDomainName},
                 {"machine", Environment.MachineName},
+                {"description", step.GetDescription()},
             };
 
             try

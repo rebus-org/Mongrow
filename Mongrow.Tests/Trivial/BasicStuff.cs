@@ -23,12 +23,12 @@ namespace Mongrow.Tests.Trivial
             var step2 = new InterleavingMigration2();
             var fullListOfSteps = new IStep[]
             {
-                new InterleavingMigration1(), 
-                step2, 
-                new InterleavingMigration3(), 
+                new InterleavingMigration1(),
+                step2,
+                new InterleavingMigration3(),
             };
 
-            var listMissingMiddleStep = fullListOfSteps.Except(new[] {step2});
+            var listMissingMiddleStep = fullListOfSteps.Except(new[] { step2 });
 
             new Migrator(database, listMissingMiddleStep, DefaultOptions).Execute();
 
@@ -98,7 +98,7 @@ namespace Mongrow.Tests.Trivial
             Console.WriteLine(exception);
         }
 
-        [Step(1)]
+        [Step(1, Decription = "Just inserts into 'docs' a doc with 'what'='text'")]
         class InsertSingleDocument : IStep
         {
             public async Task Execute(IMongoDatabase database)

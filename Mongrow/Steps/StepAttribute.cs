@@ -9,6 +9,8 @@ namespace Mongrow.Steps
     {
         public int Number { get; }
         public string BranchSpec { get; }
+        
+        public string Decription { get; set; }
 
         public StepAttribute(int number, string branchSpec = "master")
         {

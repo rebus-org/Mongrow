@@ -4,7 +4,7 @@ It's a MongoDB migration helper.
 
 With this, you can write classes that implement steps to migrate a MongoDB database.
 
-## How does a step look?
+## What do steps look like?
 
 Like this:
 
@@ -42,6 +42,15 @@ var migrator = new Migrator(
 
 migrator.Execute();
 ```
+
+## How to make robust steps
+
+While steps are just C# code, and you can do anything you want in there to the passed-in `IMongoDatabase`, you are
+encouraged to write steps that do not change along with the rest of your code.
+
+This means that you most likely want to use `BsonDocument`, magic strings, and anonymous types throughout.
+
+Wouldn't want a rename of one of your C# classes to mess up how all of your existing migrations work.
 
 ## Parallel execution
 
