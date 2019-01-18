@@ -47,6 +47,18 @@ namespace Mongrow
 
                         if (stepToExecute == null) return;
 
+                        var stepId = stepToExecute.GetId();
+
+                        var stepsAlreadyExecutedThatShouldHaveFollowedThisStep = idsOfStepsAlreadyExecuted
+                            .Where(s => string.Equals(s.BranchSpec, stepId.BranchSpec) && s.Number > stepId.Number)
+                            .ToList();
+
+                        if (stepsAlreadyExecutedThatShouldHaveFollowedThisStep.Any())
+                        {
+                            throw new ArgumentException($@"Cannot execute step {stepId} of type {stepToExecute.GetType()} now, because it should have been exeuted BEFORE the following steps:
+{stepsAlreadyExecutedThatShouldHaveFollowedThisStep.ListedAs(s => $"{s}")}");
+                        }
+
                         await ExecuteStep(stepToExecute);
                     }
                     finally
