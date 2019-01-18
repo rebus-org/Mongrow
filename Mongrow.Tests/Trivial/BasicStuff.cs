@@ -11,7 +11,7 @@ using Testy;
 namespace Mongrow.Tests.Trivial
 {
     [TestFixture]
-    public class CanDoIt : FixtureBase
+    public class BasicStuff : FixtureBase
     {
         static readonly Options DefaultOptions = new Options(logAction: Console.WriteLine, verboseLogAction: Console.WriteLine);
 

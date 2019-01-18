@@ -17,11 +17,13 @@ namespace Mongrow
         readonly IMongoDatabase _mongoDatabase;
         readonly Options _options;
         readonly List<IStep> _steps;
+        readonly MongoDbDistributedLock _lock;
 
         public Migrator(IMongoDatabase mongoDatabase, IEnumerable<IStep> steps, Options options = null)
         {
             _mongoDatabase = mongoDatabase;
             _options = options ?? new Options();
+            _lock = new MongoDbDistributedLock(mongoDatabase, _options.LockCollectionName, "Lock for Mongrow - ensures that migration steps are never executed concurrently", "Locks");
             _steps = steps.ToList();
 
             InitialScreening();
@@ -36,12 +38,27 @@ namespace Mongrow
         {
             while (true)
             {
-                var idsOfStepsAlreadyExecuted = await GetIdsOfStepsAlreadyExecuted();
-                var stepToExecute = GetNextStepToExecute(idsOfStepsAlreadyExecuted);
+                if (await _lock.TryAcquire())
+                {
+                    try
+                    {
+                        var idsOfStepsAlreadyExecuted = await GetIdsOfStepsAlreadyExecuted();
+                        var stepToExecute = GetNextStepToExecute(idsOfStepsAlreadyExecuted);
 
-                if (stepToExecute == null) return;
+                        if (stepToExecute == null) return;
 
-                await ExecuteStep(stepToExecute);
+                        await ExecuteStep(stepToExecute);
+                    }
+                    finally
+                    {
+                        await _lock.Release();
+                    }
+                }
+                else
+                {
+                    Log("Coul not acquire migration lock - waiting 1 s before trying again");
+                    await Task.Delay(TimeSpan.FromSeconds(1));
+                }
             }
         }
 

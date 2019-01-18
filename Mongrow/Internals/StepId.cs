@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Mongrow.Internals
 {
-    class StepId
+    class StepId : IComparable<StepId>, IComparable
     {
         public int Number { get; }
         public string BranchSpec { get; }
@@ -26,7 +27,7 @@ namespace Mongrow.Internals
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((StepId)obj);
         }
 
@@ -58,6 +59,42 @@ namespace Mongrow.Internals
             }
 
             return new StepId(number, string.Join("/", parts.Skip(1)));
+        }
+
+        public int CompareTo(StepId other)
+        {
+            if (ReferenceEquals(this, other)) return 0;
+            if (ReferenceEquals(null, other)) return 1;
+            var numberComparison = Number.CompareTo(other.Number);
+            if (numberComparison != 0) return numberComparison;
+            return string.Compare(BranchSpec, other.BranchSpec, StringComparison.Ordinal);
+        }
+
+        public int CompareTo(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return 1;
+            if (ReferenceEquals(this, obj)) return 0;
+            return obj is StepId other ? CompareTo(other) : throw new ArgumentException($"Object must be of type {nameof(StepId)}");
+        }
+
+        public static bool operator <(StepId left, StepId right)
+        {
+            return Comparer<StepId>.Default.Compare(left, right) < 0;
+        }
+
+        public static bool operator >(StepId left, StepId right)
+        {
+            return Comparer<StepId>.Default.Compare(left, right) > 0;
+        }
+
+        public static bool operator <=(StepId left, StepId right)
+        {
+            return Comparer<StepId>.Default.Compare(left, right) <= 0;
+        }
+
+        public static bool operator >=(StepId left, StepId right)
+        {
+            return Comparer<StepId>.Default.Compare(left, right) >= 0;
         }
     }
 }
