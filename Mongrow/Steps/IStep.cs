@@ -5,6 +5,6 @@ namespace Mongrow.Steps
 {
     public interface IStep
     {
-        Task Execute(IMongoDatabase database);
+        Task Execute(IMongoDatabase database, ILog log);
     }
 }

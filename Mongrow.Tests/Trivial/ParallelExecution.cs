@@ -95,7 +95,7 @@ namespace Mongrow.Tests.Trivial
         {
             static long _sequenceNumber;
 
-            public async Task Execute(IMongoDatabase database)
+            public async Task Execute(IMongoDatabase database, ILog log)
             {
                 var number = (int)Interlocked.Increment(ref _sequenceNumber);
                 var attribute = GetType().GetCustomAttributes(true).OfType<StepAttribute>().First();

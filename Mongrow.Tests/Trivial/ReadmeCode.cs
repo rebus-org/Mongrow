@@ -27,7 +27,7 @@ namespace Mongrow.Tests.Trivial
         [Step(1)]
         public class AddAdminUser : IStep
         {
-            public async Task Execute(IMongoDatabase database)
+            public async Task Execute(IMongoDatabase database, ILog log)
             {
                 var users = database.GetCollection<BsonDocument>("users");
 

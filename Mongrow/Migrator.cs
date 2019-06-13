@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -18,6 +17,7 @@ namespace Mongrow
         readonly Options _options;
         readonly List<IStep> _steps;
         readonly MongoDbDistributedLock _lock;
+        readonly ILog _log;
 
         public Migrator(string connectionString, IEnumerable<IStep> steps, Options options = null) : this(connectionString.GetMongoDatabase(), steps, options)
         {
@@ -29,6 +29,7 @@ namespace Mongrow
             _options = options ?? new Options();
             _lock = new MongoDbDistributedLock(mongoDatabase, _options.LockCollectionName, "Lock for Mongrow - ensures that migration steps are never executed concurrently", "Locks");
             _steps = steps.ToList();
+            _log = new LogImplementation(_options.VerboseLogAction, _options.LogAction);
 
             InitialScreening();
 
@@ -85,7 +86,7 @@ namespace Mongrow
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                await step.Execute(_mongoDatabase);
+                await step.Execute(_mongoDatabase, _log);
 
                 Log($"Recording execution of step {step.GetId()}");
 

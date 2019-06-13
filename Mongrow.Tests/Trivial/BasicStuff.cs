@@ -37,9 +37,9 @@ namespace Mongrow.Tests.Trivial
             Console.WriteLine(exception);
         }
 
-        [Step(1)] class InterleavingMigration1 : IStep { public async Task Execute(IMongoDatabase database) { } }
-        [Step(2)] class InterleavingMigration2 : IStep { public async Task Execute(IMongoDatabase database) { } }
-        [Step(3)] class InterleavingMigration3 : IStep { public async Task Execute(IMongoDatabase database) { } }
+        [Step(1)] class InterleavingMigration1 : IStep { public async Task Execute(IMongoDatabase database, ILog log) { } }
+        [Step(2)] class InterleavingMigration2 : IStep { public async Task Execute(IMongoDatabase database, ILog log) { } }
+        [Step(3)] class InterleavingMigration3 : IStep { public async Task Execute(IMongoDatabase database, ILog log) { } }
 
         [Test]
         public void CanRunSingleMigration()
@@ -101,7 +101,7 @@ namespace Mongrow.Tests.Trivial
         [Step(1, Decription = "Just inserts into 'docs' a doc with 'what'='text'")]
         class InsertSingleDocument : IStep
         {
-            public async Task Execute(IMongoDatabase database)
+            public async Task Execute(IMongoDatabase database, ILog log)
             {
                 await database.GetCollection<BsonDocument>("docs").InsertOneAsync(new BsonDocument
                 {
@@ -113,14 +113,14 @@ namespace Mongrow.Tests.Trivial
         [Step(1)]
         class HasSameIdAsTheOtherOne : IStep
         {
-            public async Task Execute(IMongoDatabase database)
+            public async Task Execute(IMongoDatabase database, ILog log)
             {
             }
         }
 
         class DoesNotHaveTheAttribute : IStep
         {
-            public async Task Execute(IMongoDatabase database)
+            public async Task Execute(IMongoDatabase database, ILog log)
             {
             }
         }

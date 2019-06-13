@@ -7,3 +7,7 @@
 ## 0.0.2
 
 * Add description to migration log
+
+## 0.0.3
+
+* Enable logging from step

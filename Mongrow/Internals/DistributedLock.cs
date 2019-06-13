@@ -98,7 +98,7 @@ namespace Mongrow.Internals
 
         void StopPeriodicRenewalTask()
         {
-            //Logger.Verbose("Stopping lock renewal for {lockId}", _lockId);
+            //Logger.WriteVerbose("Stopping lock renewal for {lockId}", _lockId);
             _renewTask?.Dispose();
         }
 
@@ -125,7 +125,7 @@ namespace Mongrow.Internals
 
                 attempt++;
 
-                //Logger.Verbose("Could not acquire lock {lockId} after {count} attempts over {timeWaited} waiting time",
+                //Logger.WriteVerbose("Could not acquire lock {lockId} after {count} attempts over {timeWaited} waiting time",
                 //    _lockId, attempt, stopwatch.Elapsed);
 
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
@@ -148,7 +148,7 @@ a single message in each queue, where the message's ID and the queue's name are 
 
         void StartPeriodicRenewalTask(string lockId)
         {
-            //Logger.Verbose("Starting periodic lock renewal for {lockId}", lockId);
+            //Logger.WriteVerbose("Starting periodic lock renewal for {lockId}", lockId);
 
             var consumer = _config.CreateConsumer(lockId);
 
@@ -160,11 +160,11 @@ a single message in each queue, where the message's ID and the queue's name are 
                     {
                         await consumer.Renew(lockId);
 
-                        //Logger.Verbose("Lock {lockId} lease successfully renewed", lockId);
+                        //Logger.WriteVerbose("Lock {lockId} lease successfully renewed", lockId);
                     }
                     catch (Exception exception)
                     {
-                        //Logger.Verbose(exception, "Could not renew lock {lockId}", lockId);
+                        //Logger.WriteVerbose(exception, "Could not renew lock {lockId}", lockId);
                     }
                 }
             );
@@ -188,7 +188,7 @@ a single message in each queue, where the message's ID and the queue's name are 
             {
                 await producer.SendAsync(lockName, new Message(headers, Encoding.ASCII.GetBytes(_description)));
 
-                //Logger.Verbose("The lock {lockId} was created", lockName);
+                //Logger.WriteVerbose("The lock {lockId} was created", lockName);
             }
             catch (UniqueMessageIdViolationException)
             {
