@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Mongrow.Internals;
 using Mongrow.Steps;
+// ReSharper disable UnusedMember.Global
+// ReSharper disable ArgumentsStyleLiteral
 
 namespace Mongrow
 {
@@ -37,56 +40,64 @@ namespace Mongrow
             Log(_steps.ListedAs(step => $"{step.GetId()}: {step.GetType().FullName}"));
         }
 
-        public void Execute() => AsyncHelpers.RunSync(ExecuteAsync);
+        public void Execute() => AsyncHelpers.RunSync(() => ExecuteAsync(CancellationToken.None));
 
-        public async Task ExecuteAsync()
+        public async Task ExecuteAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            while (true)
+            try
             {
-                if (await _lock.TryAcquire())
+                while (true)
                 {
-                    try
+                    if (await _lock.TryAcquire(cancellationToken))
                     {
-                        var idsOfStepsAlreadyExecuted = await GetIdsOfStepsAlreadyExecuted();
-                        var stepToExecute = GetNextStepToExecute(idsOfStepsAlreadyExecuted);
-
-                        if (stepToExecute == null) return;
-
-                        var stepId = stepToExecute.GetId();
-
-                        var stepsAlreadyExecutedThatShouldHaveFollowedThisStep = idsOfStepsAlreadyExecuted
-                            .Where(s => string.Equals(s.BranchSpec, stepId.BranchSpec) && s.Number > stepId.Number)
-                            .ToList();
-
-                        if (stepsAlreadyExecutedThatShouldHaveFollowedThisStep.Any())
+                        try
                         {
-                            throw new ArgumentException($@"Cannot execute step {stepId} of type {stepToExecute.GetType()} now, because it should have been exeuted BEFORE the following steps:
-{stepsAlreadyExecutedThatShouldHaveFollowedThisStep.ListedAs(s => $"{s}")}");
-                        }
+                            var idsOfStepsAlreadyExecuted = await GetIdsOfStepsAlreadyExecuted();
+                            var stepToExecute = GetNextStepToExecute(idsOfStepsAlreadyExecuted);
 
-                        await ExecuteStep(stepToExecute);
+                            if (stepToExecute == null) return;
+
+                            var stepId = stepToExecute.GetId();
+
+                            var stepsAlreadyExecutedThatShouldHaveFollowedThisStep = idsOfStepsAlreadyExecuted
+                                .Where(s => string.Equals(s.BranchSpec, stepId.BranchSpec) && s.Number > stepId.Number)
+                                .ToList();
+
+                            if (stepsAlreadyExecutedThatShouldHaveFollowedThisStep.Any())
+                            {
+                                throw new ArgumentException(
+                                    $@"Cannot execute step {stepId} of type {stepToExecute.GetType()} now, because it should have been exeuted BEFORE the following steps:
+{stepsAlreadyExecutedThatShouldHaveFollowedThisStep.ListedAs(s => $"{s}")}");
+                            }
+
+                            await ExecuteStep(stepToExecute, cancellationToken);
+                        }
+                        finally
+                        {
+                            await _lock.Release();
+                        }
                     }
-                    finally
+                    else
                     {
-                        await _lock.Release();
+                        Log("Coul not acquire migration lock - waiting 1 s before trying again");
+                        await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
                     }
                 }
-                else
-                {
-                    Log("Coul not acquire migration lock - waiting 1 s before trying again");
-                    await Task.Delay(TimeSpan.FromSeconds(1));
-                }
+            }
+            catch (Exception) when (cancellationToken.IsCancellationRequested)
+            {
+                Log("Migration cancelled", verbose: false);
             }
         }
 
-        async Task ExecuteStep(IStep step)
+        async Task ExecuteStep(IStep step, CancellationToken cancellationToken)
         {
             Log($"Executing migration step {step.GetId()}: {step.GetType().FullName}");
 
             var stopwatch = Stopwatch.StartNew();
             try
             {
-                await step.Execute(_mongoDatabase, _log);
+                await step.Execute(_mongoDatabase, _log, cancellationToken);
 
                 Log($"Recording execution of step {step.GetId()}");
 

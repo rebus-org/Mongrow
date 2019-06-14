@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver;
 using Mongrow.Steps;
@@ -31,7 +32,7 @@ namespace Mongrow.Tests.Trivial
         [Step(1)]
         class TestStep : IStep
         {
-            public async Task Execute(IMongoDatabase database, ILog log)
+            public async Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken)
             {
                 log.Write("YAY THIS IS INFO");
                 log.WriteVerbose("YAY THIS IS VERBOSE");

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Security.Claims;
+using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -27,7 +28,7 @@ namespace Mongrow.Tests.Trivial
         [Step(1)]
         public class AddAdminUser : IStep
         {
-            public async Task Execute(IMongoDatabase database, ILog log)
+            public async Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken)
             {
                 var users = database.GetCollection<BsonDocument>("users");
 

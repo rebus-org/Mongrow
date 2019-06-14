@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -37,9 +38,12 @@ namespace Mongrow.Tests.Trivial
             Console.WriteLine(exception);
         }
 
-        [Step(1)] class InterleavingMigration1 : IStep { public async Task Execute(IMongoDatabase database, ILog log) { } }
-        [Step(2)] class InterleavingMigration2 : IStep { public async Task Execute(IMongoDatabase database, ILog log) { } }
-        [Step(3)] class InterleavingMigration3 : IStep { public async Task Execute(IMongoDatabase database, ILog log) { } }
+        [Step(1)] class InterleavingMigration1 : IStep { public async Task Execute(IMongoDatabase database, ILog log,
+            CancellationToken cancellationToken) { } }
+        [Step(2)] class InterleavingMigration2 : IStep { public async Task Execute(IMongoDatabase database, ILog log,
+            CancellationToken cancellationToken) { } }
+        [Step(3)] class InterleavingMigration3 : IStep { public async Task Execute(IMongoDatabase database, ILog log,
+            CancellationToken cancellationToken) { } }
 
         [Test]
         public void CanRunSingleMigration()
@@ -101,7 +105,7 @@ namespace Mongrow.Tests.Trivial
         [Step(1, Decription = "Just inserts into 'docs' a doc with 'what'='text'")]
         class InsertSingleDocument : IStep
         {
-            public async Task Execute(IMongoDatabase database, ILog log)
+            public async Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken)
             {
                 await database.GetCollection<BsonDocument>("docs").InsertOneAsync(new BsonDocument
                 {
@@ -113,14 +117,14 @@ namespace Mongrow.Tests.Trivial
         [Step(1)]
         class HasSameIdAsTheOtherOne : IStep
         {
-            public async Task Execute(IMongoDatabase database, ILog log)
+            public async Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken)
             {
             }
         }
 
         class DoesNotHaveTheAttribute : IStep
         {
-            public async Task Execute(IMongoDatabase database, ILog log)
+            public async Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken)
             {
             }
         }

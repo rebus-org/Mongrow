@@ -15,3 +15,7 @@
 ## 0.0.4
 
 * Add another scanning method
+
+## 0.0.5
+
+* Support cancellation
