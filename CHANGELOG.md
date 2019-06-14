@@ -11,3 +11,7 @@
 ## 0.0.3
 
 * Enable logging from step
+
+## 0.0.4
+
+* Add another scanning method
