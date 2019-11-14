@@ -30,7 +30,7 @@ namespace Mongrow
         {
             _mongoDatabase = mongoDatabase;
             _options = options ?? new Options();
-            _lock = new MongoDbDistributedLock(mongoDatabase, _options.LockCollectionName, "Lock for Mongrow - ensures that migration steps are never executed concurrently", "Locks");
+            _lock = new MongoDbDistributedLock(mongoDatabase, _options.CollectionName, "Lock for Mongrow - ensures that migration steps are never executed concurrently", _options.LockCollectionName);
             _steps = steps.ToList();
             _log = new LogImplementation(_options.VerboseLogAction, _options.LogAction);
 

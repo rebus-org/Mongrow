@@ -8,6 +8,8 @@ using MongoDB.Driver;
 using MongolianBarbecue.Exceptions;
 using MongolianBarbecue.Model;
 // ReSharper disable ArgumentsStyleAnonymousFunction
+// ReSharper disable ArgumentsStyleLiteral
+// ReSharper disable ArgumentsStyleOther
 
 namespace Mongrow.Internals
 {
@@ -32,8 +34,7 @@ namespace Mongrow.Internals
             );
         }
 
-        public async Task<bool> TryAcquire(CancellationToken cancellationToken = default(CancellationToken),
-            int timeoutSeconds = 15)
+        public async Task<bool> TryAcquire(CancellationToken cancellationToken = default(CancellationToken), int timeoutSeconds = 15)
         {
             try
             {
@@ -53,8 +54,7 @@ namespace Mongrow.Internals
             }
         }
 
-        public async Task Acquire(CancellationToken cancellationToken = default(CancellationToken),
-            int timeoutSeconds = 15)
+        public async Task Acquire(CancellationToken cancellationToken = default(CancellationToken), int timeoutSeconds = 15)
         {
             if (_lockHeld) return;
 
