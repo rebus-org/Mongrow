@@ -102,7 +102,7 @@ namespace Mongrow.Tests.Trivial
             Console.WriteLine(exception);
         }
 
-        [Step(1, Decription = "Just inserts into 'docs' a doc with 'what'='text'")]
+        [Step(1, Description = "Just inserts into 'docs' a doc with 'what'='text'")]
         class InsertSingleDocument : IStep
         {
             public async Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken)

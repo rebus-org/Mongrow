@@ -17,3 +17,6 @@
 
 ## 0.0.6
 * Actually use the customized collection names passed to the migrator
+
+## 0.0.7
+* Beter spelning
