@@ -20,3 +20,6 @@
 
 ## 0.0.7
 * Beter spelning
+
+## 0.0.8
+* Update MongoDB driver to v. 2.10.0
