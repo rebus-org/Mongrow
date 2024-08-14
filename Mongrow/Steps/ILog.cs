@@ -1,8 +1,7 @@
-﻿namespace Mongrow.Steps
+﻿namespace Mongrow.Steps;
+
+public interface ILog
 {
-    public interface ILog
-    {
-        void WriteVerbose(string text);
-        void Write(string text);
-    }
+    void WriteVerbose(string text);
+    void Write(string text);
 }

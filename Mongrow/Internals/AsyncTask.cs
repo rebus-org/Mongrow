@@ -3,73 +3,72 @@ using System.Threading;
 using System.Threading.Tasks;
 // ReSharper disable EmptyGeneralCatchClause
 
-namespace Mongrow.Internals
+namespace Mongrow.Internals;
+
+class AsyncTask : IDisposable
 {
-    class AsyncTask : IDisposable
+    readonly CancellationTokenSource _cancellationTokenSource = new();
+    readonly ManualResetEvent _stopped = new(initialState: false);
+    readonly Func<CancellationToken, Task> _execute;
+    readonly TimeSpan _delayBetweenExecutions;
+
+    bool _disposed;
+
+    public AsyncTask(TimeSpan delayBetweenExecutions, Func<CancellationToken, Task> execute)
     {
-        readonly CancellationTokenSource _cancellationTokenSource = new();
-        readonly ManualResetEvent _stopped = new(initialState: false);
-        readonly Func<CancellationToken, Task> _execute;
-        readonly TimeSpan _delayBetweenExecutions;
+        _delayBetweenExecutions = delayBetweenExecutions;
+        _execute = execute ?? throw new ArgumentNullException(nameof(execute));
 
-        bool _disposed;
+        Task.Run(Run);
+    }
 
-        public AsyncTask(TimeSpan delayBetweenExecutions, Func<CancellationToken, Task> execute)
+    async Task Run()
+    {
+        try
         {
-            _delayBetweenExecutions = delayBetweenExecutions;
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            var cancellationToken = _cancellationTokenSource.Token;
 
-            Task.Run(Run);
-        }
-
-        async Task Run()
-        {
-            try
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var cancellationToken = _cancellationTokenSource.Token;
-
-                while (true)
+                try
                 {
-                    try
-                    {
-                        await Task.Delay(_delayBetweenExecutions, cancellationToken);
+                    await Task.Delay(_delayBetweenExecutions, cancellationToken);
 
-                        await _execute(cancellationToken);
-                    }
-                    catch (OperationCanceledException) when (_cancellationTokenSource.IsCancellationRequested)
-                    {
-                        // we're quitting
-                    }
-                    catch (Exception)
-                    {
-                    }
+                    await _execute(cancellationToken);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // we're quitting
+                }
+                catch (Exception)
+                {
                 }
             }
-            finally
-            {
-                _stopped.Set();
-            }
         }
-
-        public void Dispose()
+        finally
         {
-            if (_disposed) return;
+            _stopped.Set();
+        }
+    }
 
-            try
+    public void Dispose()
+    {
+        if (_disposed) return;
+
+        try
+        {
+            _cancellationTokenSource?.Cancel();
+
+            if (!_stopped.WaitOne(TimeSpan.FromSeconds(5)))
             {
-                _cancellationTokenSource?.Cancel();
-
-                if (!_stopped.WaitOne(TimeSpan.FromSeconds(5)))
-                {
-                    //Logger.Warning("Async task did not stop within 5 s timeout!!!");//
-                }
-
-                _cancellationTokenSource?.Dispose();
+                //Logger.Warning("Async task did not stop within 5 s timeout!!!");//
             }
-            finally
-            {
-                _disposed = true;
-            }
+
+            _cancellationTokenSource?.Dispose();
+        }
+        finally
+        {
+            _disposed = true;
         }
     }
 }

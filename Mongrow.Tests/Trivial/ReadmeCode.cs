@@ -7,44 +7,43 @@ using MongoDB.Driver;
 using Mongrow.Steps;
 using NUnit.Framework;
 
-namespace Mongrow.Tests.Trivial
+namespace Mongrow.Tests.Trivial;
+
+[TestFixture]
+public class ReadmeCode
 {
-    [TestFixture]
-    public class ReadmeCode
+    [Test]
+    public void ExampleStep()
     {
-        [Test]
-        public void ExampleStep()
+        new Migrator(MongoTest.GetCleanTestDatabase(), new[] {new AddAdminUser()}).Execute();
+
+        //var migrator = new Migrator(
+        //    connectionString: "mongodb://localhost/mongrow2",
+        //    steps: GetSteps.FromAssemblyOf<AddAdminUser>()
+        //);
+
+        //migrator.Execute();
+    }
+
+    [Step(1)]
+    public class AddAdminUser : IStep
+    {
+        public async Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken)
         {
-            new Migrator(MongoTest.GetCleanTestDatabase(), new[] {new AddAdminUser()}).Execute();
+            var users = database.GetCollection<BsonDocument>("users");
 
-            //var migrator = new Migrator(
-            //    connectionString: "mongodb://localhost/mongrow2",
-            //    steps: GetSteps.FromAssemblyOf<AddAdminUser>()
-            //);
-
-            //migrator.Execute();
-        }
-
-        [Step(1)]
-        public class AddAdminUser : IStep
-        {
-            public async Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken)
+            var adminUser = new
             {
-                var users = database.GetCollection<BsonDocument>("users");
-
-                var adminUser = new
+                _id = Guid.NewGuid().ToString(),
+                uid = "user1",
+                claims = new[]
                 {
-                    _id = Guid.NewGuid().ToString(),
-                    uid = "user1",
-                    claims = new[]
-                    {
-                        new {type = ClaimTypes.Email, value = "admin@whatever.com"},
-                        new {type = ClaimTypes.Role, value = "admin"},
-                    }
-                };
+                    new {type = ClaimTypes.Email, value = "admin@whatever.com"},
+                    new {type = ClaimTypes.Role, value = "admin"},
+                }
+            };
 
-                await users.InsertOneAsync(adminUser.ToBsonDocument());
-            }
+            await users.InsertOneAsync(adminUser.ToBsonDocument());
         }
     }
 }

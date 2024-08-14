@@ -1,18 +1,17 @@
 ﻿using MongoDB.Driver;
 
-namespace Mongrow.Tests
+namespace Mongrow.Tests;
+
+public static class MongoTest
 {
-    public static class MongoTest
+    public static IMongoDatabase GetCleanTestDatabase()
     {
-        public static IMongoDatabase GetCleanTestDatabase()
-        {
-            var mongoUrl = new MongoUrl("mongodb://localhost/mongrow");
-            var mongoClient = new MongoClient(mongoUrl);
-            var databaseName = mongoUrl.DatabaseName;
+        var mongoUrl = new MongoUrl("mongodb://localhost/mongrow");
+        var mongoClient = new MongoClient(mongoUrl);
+        var databaseName = mongoUrl.DatabaseName;
             
-            mongoClient.DropDatabase(databaseName);
+        mongoClient.DropDatabase(databaseName);
             
-            return mongoClient.GetDatabase(databaseName);
-        }
+        return mongoClient.GetDatabase(databaseName);
     }
 }

@@ -2,14 +2,13 @@
 using System.Reflection;
 using Mongrow.Steps;
 
-namespace Mongrow.Internals
+namespace Mongrow.Internals;
+
+static class StepExtensions
 {
-    static class StepExtensions
-    {
-        public static StepId GetId(this IStep step) => GetAttribute(step).GetId();
+    public static StepId GetId(this IStep step) => GetAttribute(step).GetId();
 
-        public static string GetDescription(this IStep step) => GetAttribute(step).Description ?? "";
+    public static string GetDescription(this IStep step) => GetAttribute(step).Description ?? "";
 
-        static StepAttribute GetAttribute(IStep step) => step.GetType().GetCustomAttributes().OfType<StepAttribute>().First();
-    }
+    static StepAttribute GetAttribute(IStep step) => step.GetType().GetCustomAttributes().OfType<StepAttribute>().First();
 }

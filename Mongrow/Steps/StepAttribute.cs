@@ -2,21 +2,20 @@
 using Mongrow.Internals;
 // ReSharper disable RedundantAttributeUsageProperty
 
-namespace Mongrow.Steps
+namespace Mongrow.Steps;
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
+public class StepAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-    public class StepAttribute : Attribute
+    public int Number { get; }
+    public string BranchSpec { get; }
+    public string Description { get; set; }
+
+    public StepAttribute(int number, string branchSpec = "master")
     {
-        public int Number { get; }
-        public string BranchSpec { get; }
-        public string Description { get; set; }
-
-        public StepAttribute(int number, string branchSpec = "master")
-        {
-            Number = number;
-            BranchSpec = branchSpec;
-        }
-
-        internal StepId GetId() => new StepId(Number, BranchSpec);
+        Number = number;
+        BranchSpec = branchSpec;
     }
+
+    internal StepId GetId() => new StepId(Number, BranchSpec);
 }

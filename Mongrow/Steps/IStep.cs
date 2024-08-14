@@ -2,10 +2,9 @@
 using System.Threading.Tasks;
 using MongoDB.Driver;
 
-namespace Mongrow.Steps
+namespace Mongrow.Steps;
+
+public interface IStep
 {
-    public interface IStep
-    {
-        Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken);
-    }
+    Task Execute(IMongoDatabase database, ILog log, CancellationToken cancellationToken);
 }
