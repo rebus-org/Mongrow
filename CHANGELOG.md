@@ -23,3 +23,6 @@
 
 ## 0.0.8
 * Update MongoDB driver to v. 2.10.0
+
+## 0.0.9
+* Update dependencies and add pretty artwork
