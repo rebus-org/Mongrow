@@ -15,9 +15,9 @@ namespace Mongrow.Internals
 {
     class MongoDbDistributedLock
     {
-        readonly string _lockId;
-        readonly string _description;
         readonly MongolianBarbecue.Config _config;
+        readonly string _description;
+        readonly string _lockId;
 
         AsyncTask _renewTask;
         bool _lockHeld;
@@ -34,11 +34,11 @@ namespace Mongrow.Internals
             );
         }
 
-        public async Task<bool> TryAcquire(CancellationToken cancellationToken = default(CancellationToken), int timeoutSeconds = 15)
+        public async Task<bool> TryAcquireAsync(CancellationToken cancellationToken = default, int timeoutSeconds = 15)
         {
             try
             {
-                await Acquire(cancellationToken, timeoutSeconds);
+                await AcquireAsync(cancellationToken, timeoutSeconds);
                 return true;
             }
             catch (LockAcquisitionTimeoutException)
@@ -47,25 +47,20 @@ namespace Mongrow.Internals
             }
         }
 
-        class LockAcquisitionTimeoutException : Exception
-        {
-            public LockAcquisitionTimeoutException(string message) : base(message)
-            {
-            }
-        }
+        class LockAcquisitionTimeoutException(string message) : Exception(message);
 
-        public async Task Acquire(CancellationToken cancellationToken = default(CancellationToken), int timeoutSeconds = 15)
+        public async Task AcquireAsync(CancellationToken cancellationToken = default, int timeoutSeconds = 15)
         {
             if (_lockHeld) return;
 
             await EnsureLockExists(_lockId);
 
-            await AcquireLock(_lockId, cancellationToken, timeout: TimeSpan.FromSeconds(timeoutSeconds));
+            await AcquireLockAsync(_lockId, cancellationToken, timeout: TimeSpan.FromSeconds(timeoutSeconds));
 
             StartPeriodicRenewalTask(_lockId);
         }
 
-        public async Task Release()
+        public async Task ReleaseAsync()
         {
             if (!_lockHeld) return;
 
@@ -73,7 +68,7 @@ namespace Mongrow.Internals
 
             try
             {
-                await ReleaseLock(_lockId);
+                await ReleaseLockAsync(_lockId);
             }
             finally
             {
@@ -81,7 +76,7 @@ namespace Mongrow.Internals
             }
         }
 
-        async Task ReleaseLock(string lockName)
+        async Task ReleaseLockAsync(string lockName)
         {
             var consumer = _config.CreateConsumer(lockName);
 
@@ -90,7 +85,7 @@ namespace Mongrow.Internals
             {
                 await consumer.Nack(_lockId);
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 //Logger.Information(exception, "Lock {lockId} could NOT be released. Lock will automatically expire in about 1 minute", _lockId);
             }
@@ -102,7 +97,7 @@ namespace Mongrow.Internals
             _renewTask?.Dispose();
         }
 
-        async Task AcquireLock(string lockId, CancellationToken cancellationToken, TimeSpan timeout)
+        async Task AcquireLockAsync(string lockId, CancellationToken cancellationToken, TimeSpan timeout)
         {
             var consumer = _config.CreateConsumer(_lockId);
             var stopwatch = Stopwatch.StartNew();
@@ -131,7 +126,7 @@ namespace Mongrow.Internals
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
             }
 
-            throw new LockAcquisitionTimeoutException($@"Could not acquire lock '{lockId}' within {timeout} timeout");
+            throw new LockAcquisitionTimeoutException($"Could not acquire lock '{lockId}' within {timeout} timeout");
         }
 
         static void AssertMessageIdMatchesLockName(ReceivedMessage message, string lockId)
@@ -154,7 +149,7 @@ a single message in each queue, where the message's ID and the queue's name are 
 
             _renewTask = new AsyncTask(
                 delayBetweenExecutions: TimeSpan.FromSeconds(20),
-                execute: async token =>
+                execute: async _ =>
                 {
                     try
                     {
@@ -168,11 +163,6 @@ a single message in each queue, where the message's ID and the queue's name are 
                     }
                 }
             );
-        }
-
-        public void Dispose()
-        {
-            Task.Run(Release);
         }
 
         async Task EnsureLockExists(string lockName)

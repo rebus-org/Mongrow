@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+// ReSharper disable EmptyGeneralCatchClause
 
 namespace Mongrow.Internals
 {
     class AsyncTask : IDisposable
     {
-        readonly ManualResetEvent _stopped = new ManualResetEvent(false);
-        readonly CancellationTokenSource _cancellationTokenSource;
-        readonly TimeSpan _delayBetweenExecutions;
+        readonly CancellationTokenSource _cancellationTokenSource = new();
+        readonly ManualResetEvent _stopped = new(initialState: false);
         readonly Func<CancellationToken, Task> _execute;
+        readonly TimeSpan _delayBetweenExecutions;
 
         bool _disposed;
 
         public AsyncTask(TimeSpan delayBetweenExecutions, Func<CancellationToken, Task> execute)
         {
             _delayBetweenExecutions = delayBetweenExecutions;
-            _execute = execute;
-            _cancellationTokenSource = new CancellationTokenSource();
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
 
             Task.Run(Run);
         }
@@ -30,40 +30,24 @@ namespace Mongrow.Internals
 
                 while (true)
                 {
-                    await Wait(cancellationToken);
+                    try
+                    {
+                        await Task.Delay(_delayBetweenExecutions, cancellationToken);
 
-                    await Execute(cancellationToken);
+                        await _execute(cancellationToken);
+                    }
+                    catch (OperationCanceledException) when (_cancellationTokenSource.IsCancellationRequested)
+                    {
+                        // we're quitting
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                // we're quitting
             }
             finally
             {
                 _stopped.Set();
-            }
-        }
-
-        Task Wait(CancellationToken cancellationToken)
-        {
-            return Task.Delay(_delayBetweenExecutions, cancellationToken);
-        }
-
-        async Task Execute(CancellationToken cancellationToken)
-        {
-            try
-            {
-                await _execute(cancellationToken);
-            }
-            catch (OperationCanceledException)
-            {
-                // we're quitting
-                throw;
-            }
-            catch (Exception exception)
-            {
-                //Logger.Error(exception, "Error when executing callback");
             }
         }
 

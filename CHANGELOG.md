@@ -29,3 +29,6 @@
 
 ## 0.0.10
 * Add readme too
+
+## 0.0.11
+* Simplify and prettify

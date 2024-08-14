@@ -48,7 +48,7 @@ namespace Mongrow
             {
                 while (true)
                 {
-                    if (await _lock.TryAcquire(cancellationToken))
+                    if (await _lock.TryAcquireAsync(cancellationToken))
                     {
                         try
                         {
@@ -74,7 +74,7 @@ namespace Mongrow
                         }
                         finally
                         {
-                            await _lock.Release();
+                            await _lock.ReleaseAsync();
                         }
                     }
                     else
