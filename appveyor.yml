@@ -1,4 +1,4 @@
-image: Visual Studio 2017
+image: Visual Studio 2022
 
 services:
   - mongodb
@@ -13,5 +13,7 @@ before_build:
   - appveyor-retry dotnet restore -v Minimal
 
 build_script:
-  - dotnet build Mongrow -c Release 
-  - dotnet build Mongrow.Tests -c Release 
+  - dotnet build Mongrow -c Release --no-restore
+
+test_script:
+  - dotnet test Mongrow.Tests -c Release --no-restore
