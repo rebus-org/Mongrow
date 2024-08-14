@@ -26,3 +26,6 @@
 
 ## 0.0.9
 * Update dependencies and add pretty artwork
+
+## 0.0.10
+* Add readme too
