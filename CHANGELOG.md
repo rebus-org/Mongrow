@@ -32,3 +32,6 @@
 
 ## 0.0.11
 * Simplify and prettify
+
+## 0.0.12
+* Update to v3 of MongoDB.Driver
