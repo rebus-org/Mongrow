@@ -87,7 +87,7 @@ class MongoDbDistributedLock : IDisposable
         // ignore exceptions here, because the lock's lease will eventually expire anyway
         try
         {
-            await consumer.Nack(_lockId);
+            await consumer.NackAsync(_lockId);
         }
         catch (Exception)
         {
@@ -111,7 +111,7 @@ class MongoDbDistributedLock : IDisposable
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var message = await consumer.GetNextAsync();
+            var message = await consumer.GetNextAsync(cancellationToken);
 
             // if lock was acquired, return
             if (message != null)
@@ -157,7 +157,7 @@ a single message in each queue, where the message's ID and the queue's name are 
             {
                 try
                 {
-                    await consumer.Renew(lockId);
+                    await consumer.RenewAsync(lockId, _);
 
                     //Logger.WriteVerbose("Lock {lockId} lease successfully renewed", lockId);
                 }

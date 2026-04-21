@@ -35,3 +35,7 @@
 
 ## 0.0.12
 * Update to v3 of MongoDB.Driver
+
+## 0.0.13
+* Update MongoDB.Driver to 3.8.0
+* Update MongolianBarbecue to 4.0.0

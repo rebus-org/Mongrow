@@ -21,8 +21,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="mongodb.driver" Version="3.0.0" />
-		<PackageReference Include="mongolianbarbecue" Version="3.0.2" />
+		<PackageReference Include="mongodb.driver" Version="3.8.0" />
+		<PackageReference Include="mongolianbarbecue" Version="4.0.0" />
 	</ItemGroup>
 
 </Project>
